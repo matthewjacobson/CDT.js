@@ -1,87 +1,94 @@
 #include "CDT.h"
 #include <emscripten/bind.h>
 
+using namespace emscripten;
 using namespace CDT;
 
-struct CustomPoint2D {
-    double x;
-    double y;
-    CustomPoint2D(double x, double y) : x(x), y(y) { }
-};
+// -------------------
+// Helper Functions
+// -------------------
 
-struct CustomEdge {
-    std::pair<std::size_t, std::size_t> vertices;
-    CustomEdge(std::pair<std::size_t, std::size_t> vertices) : vertices(vertices) { }
-};
-
-// Expose a simple triangulation function
-emscripten::val triangulate(emscripten::val pointsJS, emscripten::val edgesJS) {
-    
-//    int len = points["length"].as<int>();
-//    float sum = 0;
-//    for (int i = 0; i < len; i++) {
-//        sum += points[i][1].as<float>();
-//    }
-//    return emscripten::val(sum);
-    
-    std::vector<CustomPoint2D> points;
-    for (int i = 0; i < pointsJS["length"].as<int>(); ++i) {
-        double x = pointsJS[i][0].as<double>();
-        double y = pointsJS[i][1].as<double>();
-        points.emplace_back(x, y);
+emscripten::val getVerticesJS(const Triangulation<double>& t) {
+    emscripten::val array = emscripten::val::array();
+    for (const auto& item : t.vertices) {
+        emscripten::val vertex = emscripten::val::object();
+        vertex.set("x", item.x);
+        vertex.set("y", item.y);
+        array.call<void>("push", vertex);
     }
-    
-    std::vector<CustomEdge> edges;
-    for (int i = 0; i < edgesJS["length"].as<int>(); ++i) {
-        int v1 = edgesJS[i][0].as<int>();
-        int v2 = edgesJS[i][1].as<int>();
-        edges.emplace_back(std::make_pair(v1, v2));
-    }
-
-    CDT::Triangulation<double> cdt;
-    cdt.insertVertices(
-        points.begin(),
-        points.end(),
-        [](const CustomPoint2D& p){ return p.x; },
-        [](const CustomPoint2D& p){ return p.y; }
-    );
-    cdt.insertEdges(
-        edges.begin(),
-        edges.end(),
-        [](const CustomEdge& e){ return e.vertices.first; },
-        [](const CustomEdge& e){ return e.vertices.second; }
-    );
-    cdt.eraseSuperTriangle();
-//    cdt.eraseOuterTrianglesAndHoles();
-
-    const auto& triangles = cdt.triangles;
-    const auto& vertices = cdt.vertices;
-    
-    emscripten::val trianglesResult = emscripten::val::array();
-    for (size_t i = 0; i < triangles.size(); ++i) {
-        emscripten::val tri = emscripten::val::array();
-        tri.set(0, triangles[i].vertices[0]);
-        tri.set(1, triangles[i].vertices[1]);
-        tri.set(2, triangles[i].vertices[2]);
-        trianglesResult.set(i, tri);
-    }
-    
-    emscripten::val verticesResult = emscripten::val::array();
-    for (size_t i = 0; i < vertices.size(); ++i) {
-        emscripten::val vert = emscripten::val::array();
-        vert.set(0, vertices[i].x);
-        vert.set(1, vertices[i].y);
-        verticesResult.set(i, vert);
-    }
-    
-    emscripten::val result = emscripten::val::object();
-    result.set("triangles", trianglesResult);
-    result.set("vertices", verticesResult);
-    return result;
-    
-//    return result;
+    return array;
 }
 
-EMSCRIPTEN_BINDINGS(my_module) {
-    emscripten::function("triangulate", &triangulate);
+emscripten::val getTrianglesJS(const Triangulation<double>& t) {
+    emscripten::val array = emscripten::val::array();
+    for (const auto& item : t.triangles) {
+        emscripten::val vertices = emscripten::val::array();
+        vertices.set(0, item.vertices[0]);
+        vertices.set(1, item.vertices[1]);
+        vertices.set(2, item.vertices[2]);
+        emscripten::val neighbors = emscripten::val::array();
+        neighbors.set(0, item.neighbors[0]);
+        neighbors.set(1, item.neighbors[1]);
+        neighbors.set(2, item.neighbors[2]);
+        emscripten::val triangle = emscripten::val::object();
+        triangle.set("vertices", vertices);
+        triangle.set("neighbors", neighbors);
+        array.call<void>("push", triangle);
+    }
+    return array;
+}
+
+emscripten::val getFixedEdgesJS(const Triangulation<double>& t) {
+    emscripten::val array = emscripten::val::array();
+    for (const auto& item : t.fixedEdges) {
+        emscripten::val fixedEdge = emscripten::val::object();
+        fixedEdge.set("from", item.v1());
+        fixedEdge.set("to", item.v2());
+        array.call<void>("push", fixedEdge);
+    }
+    return array;
+}
+
+void insertVerticesJS(Triangulation<double>& t, val jsArray) {
+    std::vector<V2d<double>> verts;
+    const unsigned length = jsArray["length"].as<unsigned>();
+    for (unsigned i = 0; i < length; ++i) {
+        auto obj = jsArray[i];
+        verts.emplace_back(obj["x"].as<double>(), obj["y"].as<double>());
+    }
+    t.insertVertices(verts);
+}
+
+void insertEdgesJS(Triangulation<double>& t, val jsArray) {
+    std::vector<Edge> edges;
+    const unsigned length = jsArray["length"].as<unsigned>();
+    for (unsigned i = 0; i < length; ++i) {
+        auto obj = jsArray[i];
+        edges.emplace_back(obj["from"].as<int>(), obj["to"].as<int>());
+    }
+    t.insertEdges(edges);
+}
+
+void conformToEdgesJS(Triangulation<double>& t, val jsArray) {
+    std::vector<Edge> edges;
+    const unsigned length = jsArray["length"].as<unsigned>();
+    for (unsigned i = 0; i < length; ++i) {
+        auto obj = jsArray[i];
+        edges.emplace_back(obj["from"].as<int>(), obj["to"].as<int>());
+    }
+    t.conformToEdges(edges);
+}
+
+EMSCRIPTEN_BINDINGS(cdt_module) {
+    class_<Triangulation<double>>("Triangulation")
+        .constructor<>()
+        .function("getVertices", &getVerticesJS)
+        .function("getTriangles", &getTrianglesJS)
+        .function("getFixedEdges", &getFixedEdgesJS)
+        .function("insertVertices", &insertVerticesJS)
+        .function("insertEdges", &insertEdgesJS)
+        .function("conformToEdges", &conformToEdgesJS)
+        .function("eraseSuperTriangle", &Triangulation<double>::eraseSuperTriangle)
+        .function("eraseOuterTriangles", &Triangulation<double>::eraseOuterTriangles)
+        .function("eraseOuterTrianglesAndHoles", &Triangulation<double>::eraseOuterTrianglesAndHoles);
 }
