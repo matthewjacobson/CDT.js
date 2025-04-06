@@ -1,0 +1,33 @@
+{
+  "name": "cdt-js",
+  "version": "0.1.3",
+  "description": "Constrained Delaunay Triangulation library for JavaScript using WebAssembly",
+  "main": "dist/cdt.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist/cdt.js",
+    "dist/cdt.wasm",
+    "dist/index.d.ts"
+  ],
+  "scripts": {
+    "build": "./build.sh"
+  },
+  "keywords": [
+    "triangulation",
+    "delaunay",
+    "constrained-delaunay",
+    "webassembly",
+    "wasm",
+    "geometry"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matthewjacobson/CDT.js.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

@@ -7,7 +7,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/p5.js"></script>
 </head>
 <body>
-	<script src="../../dist/cdt.js"></script>
 	<script>
 		const [w, h] = [400, 400];
 
@@ -38,6 +37,10 @@
 		}
 	</script>
 	<script type="module">
+
+		// import CDTModule from '../../dist/cdt.js';
+		import CDTModule from 'https://unpkg.com/cdt-js@latest/dist/cdt.js';
+
 		CDTModule().then((Module) => {
 
 			const tri = new Module.Triangulation(Module.VertexInsertionOrder.AsProvided, Module.IntersectingConstraintEdges.NotAllowed, 0.01);
@@ -49,7 +52,7 @@
 			const [midPadding, midSamples] = [10, 50];
 
 			for (let i = 0; i < outerSamples; i++) {
-				const a = map(i, 0, outerSamples, 0, 2 * Math.PI);
+				const a = 2 * Math.PI * i / outerSamples;
 				verts.push({
 					x: center.x + outerRadius * Math.cos(a),
 					y: center.y + outerRadius * Math.sin(a)
@@ -58,7 +61,7 @@
 			edges.push(...Array.from({ length: outerSamples }, (_, i) => ({ from: i, to: (i + 1) % outerSamples })));
 
 			for (let i = 0; i < innerSamples; i++) {
-				const a = map(i, 0, innerSamples, 0, 2 * Math.PI);
+				const a = 2 * Math.PI * i / innerSamples;
 				verts.push({
 					x: center.x + innerRadius * Math.cos(a),
 					y: center.y + innerRadius * Math.sin(a)
