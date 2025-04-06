@@ -80,8 +80,20 @@ void conformToEdgesJS(Triangulation<double>& t, val jsArray) {
 }
 
 EMSCRIPTEN_BINDINGS(cdt_module) {
+    
+    enum_<VertexInsertionOrder::Enum>("VertexInsertionOrder")
+        .value("Auto", VertexInsertionOrder::Auto)
+        .value("AsProvided", VertexInsertionOrder::AsProvided);
+    
+    enum_<IntersectingConstraintEdges::Enum>("IntersectingConstraintEdges")
+        .value("NotAllowed", IntersectingConstraintEdges::NotAllowed)
+        .value("TryResolve", IntersectingConstraintEdges::TryResolve)
+        .value("DontCheck", IntersectingConstraintEdges::DontCheck);
+    
     class_<Triangulation<double>>("Triangulation")
         .constructor<>()
+        .constructor<VertexInsertionOrder::Enum>()
+        .constructor<VertexInsertionOrder::Enum, IntersectingConstraintEdges::Enum, double>()
         .function("getVertices", &getVerticesJS)
         .function("getTriangles", &getTrianglesJS)
         .function("getFixedEdges", &getFixedEdgesJS)
