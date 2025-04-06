@@ -40,9 +40,6 @@
 	<script type="module">
 		CDTModule().then((Module) => {
 
-			// console.log(Module.VIOTest.ONE);
-			console.log(Module.VertexInsertionOrder.Auto);
-
 			const tri = new Module.Triangulation(Module.VertexInsertionOrder.AsProvided, Module.IntersectingConstraintEdges.NotAllowed, 0.01);
 			const [verts, edges] = [[], []];
 
