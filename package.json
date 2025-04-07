@@ -1,6 +1,6 @@
 {
   "name": "cdt-js",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Constrained Delaunay Triangulation library for JavaScript using WebAssembly",
   "main": "dist/cdt.js",
   "types": "dist/cdt.d.ts",
