@@ -55,7 +55,6 @@ new Triangulation(
 );
 ```
 
-- `floatType`: 'f32' for single precision or 'f64' for double precision floating point (default)
 - `vertexInsertionOrder`: Strategy specifying order in which a range of vertices is inserted (default: Auto)
 - `intersectingConstraintEdges`: Strategy for treating intersecting constraint edges (default: NotAllowed)
 - `minDistToConstraintEdge`: Distance within which a point is considered to be lying on a constraint edge (default: 0)
