@@ -9,6 +9,11 @@ declare module "cdt-js" {
     to: number;
   }
     
+  export interface Triangle {
+    vertices: [number, number, number];
+    neighbors: [number, number, number];
+  }
+    
   export enum VertexInsertionOrder {
     Auto = 0,
     AsProvided = 1
@@ -23,7 +28,7 @@ declare module "cdt-js" {
   export class Triangulation {
     constructor(vertexInsertionOrder?: VertexInsertionOrder, intersectingConstraintEdges?: IntersectingConstraintEdges, minDistToConstraintEdge?: number);
     getVertices(): Point[];
-    getTriangles(): number[][];
+    getTriangles(): Triangle[];
     getFixedEdges(): Edge[];
     insertVertices(vertices: Point[]): void;
     insertEdges(edges: Edge[]): void;
@@ -33,9 +38,12 @@ declare module "cdt-js" {
     eraseOuterTrianglesAndHoles(): void;
   }
 
+  export function extractEdgesFromTriangles(triangles: Triangle[]): Edge[];
+
   export default function createCDTModule(): Promise<{
     Triangulation: typeof Triangulation;
     VertexInsertionOrder: typeof VertexInsertionOrder;
     IntersectingConstraintEdges: typeof IntersectingConstraintEdges;
+    extractEdgesFromTriangles: typeof extractEdgesFromTriangles;
   }>;
 }

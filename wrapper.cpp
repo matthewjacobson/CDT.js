@@ -79,6 +79,40 @@ void conformToEdgesJS(Triangulation<double>& t, val jsArray) {
     t.conformToEdges(edges);
 }
 
+emscripten::val extractEdgesFromTrianglesJS(val jsTriangles) {
+    // Convert JS triangles to C++ triangles
+    TriangleVec triangles;
+    const unsigned length = jsTriangles["length"].as<unsigned>();
+    for (unsigned i = 0; i < length; ++i) {
+        auto obj = jsTriangles[i];
+        auto vertices = obj["vertices"];
+        auto neighbors = obj["neighbors"];
+        
+        Triangle triangle;
+        triangle.vertices[0] = vertices[0].as<VertInd>();
+        triangle.vertices[1] = vertices[1].as<VertInd>();
+        triangle.vertices[2] = vertices[2].as<VertInd>();
+        triangle.neighbors[0] = neighbors[0].as<TriInd>();
+        triangle.neighbors[1] = neighbors[1].as<TriInd>();
+        triangle.neighbors[2] = neighbors[2].as<TriInd>();
+        
+        triangles.push_back(triangle);
+    }
+    
+    // Extract edges
+    EdgeUSet edges = extractEdgesFromTriangles(triangles);
+    
+    // Convert back to JS
+    emscripten::val array = emscripten::val::array();
+    for (const auto& edge : edges) {
+        emscripten::val jsEdge = emscripten::val::object();
+        jsEdge.set("from", edge.v1());
+        jsEdge.set("to", edge.v2());
+        array.call<void>("push", jsEdge);
+    }
+    return array;
+}
+
 EMSCRIPTEN_BINDINGS(cdt_module) {
     
     enum_<VertexInsertionOrder::Enum>("VertexInsertionOrder")
@@ -103,4 +137,6 @@ EMSCRIPTEN_BINDINGS(cdt_module) {
         .function("eraseSuperTriangle", &Triangulation<double>::eraseSuperTriangle)
         .function("eraseOuterTriangles", &Triangulation<double>::eraseOuterTriangles)
         .function("eraseOuterTrianglesAndHoles", &Triangulation<double>::eraseOuterTrianglesAndHoles);
+    
+    function("extractEdgesFromTriangles", &extractEdgesFromTrianglesJS);
 }
