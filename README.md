@@ -13,7 +13,7 @@ npm install cdt-js
 ### ES Modules
 
 ```javascript
-import CDTModule, { Point, Edge, extractEdgesFromTriangles } from 'cdt-js';
+import CDTModule, { Point, Edge } from 'cdt-js';
 
 CDTModule().then((CDT) => {
   const triangulation = new CDT.Triangulation();
@@ -36,7 +36,7 @@ CDTModule().then((CDT) => {
   const vertices = triangulation.getVertices();
   const triangles = triangulation.getTriangles();
   const fixedEdges = triangulation.getFixedEdges();
-  const extractedEdges = extractEdgesFromTriangles(triangles);
+  const extractedEdges = CDT.extractEdgesFromTriangles(triangles);
   console.log(vertices);
   console.log(triangles);
   console.log(fixedEdges);
